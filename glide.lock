@@ -1,0 +1,57 @@
+hash: ccd22fd7f35bd01f743959abdc31a51f54acc32a81396fd1c1ebfca292f612fe
+updated: 2018-12-12T15:21:30.717389+01:00
+imports:
+- name: github.com/fsnotify/fsnotify
+  version: ccc981bf80385c528a65fbfdd49bf2d8da22aa23
+- name: github.com/hashicorp/hcl
+  version: 65a6292f0157eff210d03ed1bf6c59b190b8b906
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/printer
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
+- name: github.com/hashicorp/vault
+  version: c19cef14891751a23eaa9b41fd456d1f99e7e856
+  subpackages:
+  - api
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/magiconair/properties
+  version: 7c38529aac7222391b7a2661365177a97e21b998
+- name: github.com/mitchellh/mapstructure
+  version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
+- name: github.com/pelletier/go-toml
+  version: 27c6b39a135b7dc87a14afb068809132fb7a9a8f
+- name: github.com/Sirupsen/logrus
+  version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
+- name: github.com/spf13/afero
+  version: d40851caa0d747393da1ffb28f7f9d8b4eeffebd
+  subpackages:
+  - mem
+- name: github.com/spf13/cast
+  version: 8c9545af88b134710ab1cd196795e7f2388358d7
+- name: github.com/spf13/cobra
+  version: d2d81d9a96e23f0255397222bb0b4e3165e492dc
+- name: github.com/spf13/jwalterweatherman
+  version: 94f6ae3ed3bceceafa716478c5fbf8d29ca601a1
+- name: github.com/spf13/pflag
+  version: 916c5bf2d89aff6fd3e10e7811337218dfa81cb5
+- name: github.com/spf13/viper
+  version: 6d33b5a963d922d182c91e8a1c88d81fd150cfd4
+- name: golang.org/x/sys
+  version: b05ddf57801d2239d6ab0ee35f9d981e0420f4ac
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: 17bcc049122f272a32787ba38073ee47433023e9
+  subpackages:
+  - transform
+  - unicode/norm
+- name: gopkg.in/yaml.v2
+  version: 51d6538a90f86fe93ac480b35f37b2be17fef232
+testImports: []

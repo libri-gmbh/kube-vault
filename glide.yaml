@@ -1,0 +1,8 @@
+package: github.com/libri-gmbh/kube-vault-sidecar
+import:
+- package: github.com/hashicorp/vault
+  version: ^1.0.0
+  subpackages:
+  - api
+- package: github.com/Sirupsen/logrus
+  version: ^1.2.0
