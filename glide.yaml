@@ -6,3 +6,5 @@ import:
   - api
 - package: github.com/Sirupsen/logrus
   version: ^1.2.0
+- package: github.com/kelseyhightower/envconfig
+  version: ^1.3.0

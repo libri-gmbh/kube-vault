@@ -1,0 +1,26 @@
+version: "3"
+services:
+  init:
+#    build: .
+    image: scalify/glide:0.13.0
+#    command:
+#     - "init"
+    environment:
+      - "KUBE_AUTH_PATH=lisa-development/example/k8s"
+      - "KUBE_AUTH_ROLE=lisa-development-example-write"
+      - "VAULT_ADDR=https://vault.lisa-development.integration.libri.cloud"
+    tty: true
+    stdin_open: true
+    volumes:
+      - "env:/env"
+      - "./k8s.token:/run/secrets/kubernetes.io/serviceaccount/token"
+      - "./:/go/src/github.com/libri-gmbh/kube-vault-sidecar/"
+    working_dir: "/go/src/github.com/libri-gmbh/kube-vault-sidecar/"
+  app:
+    image: alpine
+    tty: true
+    stdin_open: true
+    volumes:
+      - "env:/env"
+volumes:
+  env: {}

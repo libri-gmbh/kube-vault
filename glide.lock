@@ -1,14 +1,25 @@
-hash: ccd22fd7f35bd01f743959abdc31a51f54acc32a81396fd1c1ebfca292f612fe
-updated: 2018-12-12T15:21:30.717389+01:00
+hash: 2d4825e9b422e836df1905931afc82a6027c51f8b12e7689ce97ee4c5301c310
+updated: 2018-12-17T12:00:53.857359+01:00
 imports:
-- name: github.com/fsnotify/fsnotify
-  version: ccc981bf80385c528a65fbfdd49bf2d8da22aa23
+- name: github.com/golang/snappy
+  version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
+- name: github.com/hashicorp/errwrap
+  version: 8a6fb523712970c966eefc6b39ed2c5e74880354
+- name: github.com/hashicorp/go-cleanhttp
+  version: e8ab9daed8d1ddd2d3c4efba338fe2eeae2e4f18
+- name: github.com/hashicorp/go-multierror
+  version: 886a7fbe3eb1c874d46f623bfa70af45f425b3d1
+- name: github.com/hashicorp/go-retryablehttp
+  version: d3a63d3c72068412f9ecd7c36faafd874d2e2888
+- name: github.com/hashicorp/go-rootcerts
+  version: 6bb64b370b90e7ef1fa532be9e591a81c3493e00
+- name: github.com/hashicorp/go-sockaddr
+  version: 6d291a969b86c4b633730bfc6b8b9d64c3aafed9
 - name: github.com/hashicorp/hcl
   version: 65a6292f0157eff210d03ed1bf6c59b190b8b906
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/printer
   - hcl/scanner
   - hcl/strconv
   - hcl/token
@@ -16,42 +27,64 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/vault
-  version: c19cef14891751a23eaa9b41fd456d1f99e7e856
+  version: 08df121c8b9adcc2b8fd55fc8506c3f9714c7e61
   subpackages:
   - api
+  - helper/compressutil
+  - helper/consts
+  - helper/hclutil
+  - helper/jsonutil
+  - helper/parseutil
+  - helper/strutil
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
-- name: github.com/magiconair/properties
-  version: 7c38529aac7222391b7a2661365177a97e21b998
+- name: github.com/kelseyhightower/envconfig
+  version: f611eb38b3875cc3bd991ca91c51d06446afa14c
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
+- name: github.com/mitchellh/go-homedir
+  version: ae18d6b8b3205b561c79e8e5f69bff09736185f4
 - name: github.com/mitchellh/mapstructure
   version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
-- name: github.com/pelletier/go-toml
-  version: 27c6b39a135b7dc87a14afb068809132fb7a9a8f
+- name: github.com/pierrec/lz4
+  version: 623b5a2f4d2a41e411730dcdfbfdaeb5c0c4564e
+  subpackages:
+  - internal/xxh32
+- name: github.com/ryanuber/go-glob
+  version: 256dc444b735e061061cf46c809487313d5b0065
 - name: github.com/Sirupsen/logrus
   version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
-- name: github.com/spf13/afero
-  version: d40851caa0d747393da1ffb28f7f9d8b4eeffebd
-  subpackages:
-  - mem
-- name: github.com/spf13/cast
-  version: 8c9545af88b134710ab1cd196795e7f2388358d7
 - name: github.com/spf13/cobra
   version: d2d81d9a96e23f0255397222bb0b4e3165e492dc
-- name: github.com/spf13/jwalterweatherman
-  version: 94f6ae3ed3bceceafa716478c5fbf8d29ca601a1
 - name: github.com/spf13/pflag
   version: 916c5bf2d89aff6fd3e10e7811337218dfa81cb5
-- name: github.com/spf13/viper
-  version: 6d33b5a963d922d182c91e8a1c88d81fd150cfd4
+- name: golang.org/x/crypto
+  version: 505ab145d0a99da450461ae2c1a9f6cd10d1f447
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/net
+  version: e147a9138326bc0e9d4e179541ffd8af41cff8a9
+  subpackages:
+  - http/httpguts
+  - http2
+  - http2/hpack
+  - idna
 - name: golang.org/x/sys
-  version: b05ddf57801d2239d6ab0ee35f9d981e0420f4ac
+  version: 4d1cda033e0619309c606fc686de3adcf599539e
   subpackages:
   - unix
+  - windows
 - name: golang.org/x/text
   version: 17bcc049122f272a32787ba38073ee47433023e9
   subpackages:
+  - secure/bidirule
   - transform
+  - unicode/bidi
   - unicode/norm
+- name: golang.org/x/time
+  version: 85acf8d2951cb2a3bde7632f9ff273ef0379bcbd
+  subpackages:
+  - rate
 - name: gopkg.in/yaml.v2
   version: 51d6538a90f86fe93ac480b35f37b2be17fef232
 testImports: []

@@ -12,5 +12,5 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /go/src/github.com/libri-gmbh/kube-vault-sidecar/bin/kube-vault-sidecar .
-RUN chmod +x sidecar
+RUN chmod +x ./kube-vault-sidecar
 ENTRYPOINT ["./kube-vault-sidecar"]
