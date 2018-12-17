@@ -1,2 +1,11 @@
 # kube-vault-sidecar
-Sidecar for managing credential leases fetched from vault.
+A slim sidecar / init container to fetch and renew vault secret leases.
+
+
+
+
+# License
+
+    MIT License
+    
+    Copyright (c) 2018 Libri GmbH
