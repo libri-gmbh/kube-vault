@@ -4,12 +4,10 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/hashicorp/vault/api"
-	"github.com/kelseyhightower/envconfig"
-	"github.com/libri-gmbh/kube-vault-sidecar/pkg/siedecar"
+	"github.com/libri-gmbh/kube-vault-sidecar/pkg/processor"
+	"github.com/libri-gmbh/kube-vault-sidecar/pkg/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -18,36 +16,22 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Run the sidecar as init container to fetch secrets and store credentials",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		baseLogger := logrus.New()
-		baseLogger.SetFormatter(&logrus.JSONFormatter{})
 		logger := baseLogger.WithField("cmd", "init")
-
-		var cfg config
-		if err := envconfig.Process("", &cfg); err != nil {
-			logger.Fatalf("Failed to parse env config: %v", err)
-		}
-
-		if cfg.Verbose {
-			baseLogger.SetLevel(logrus.DebugLevel)
-		} else {
-			baseLogger.SetLevel(logrus.InfoLevel)
-		}
-
-		client, err := api.NewClient(api.DefaultConfig())
+		auth := vault.NewAuthenticator(logger)
+		_, err := auth.Authenticate(client, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
 		if err != nil {
-			logger.Fatalf("Failed to create vault client: %v", err)
+			baseLogger.Fatalf("failed to authenticate with vault: %v", err)
 		}
 
-		auth := siedecar.NewVaultAuthenticator(logger)
-		token, err := auth.Authenticate(client, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
-		if err != nil {
-			logger.Fatalf("failed to authenticate with vault: %v", err)
-		}
+		switch cfg.ProcessorStrategy {
+		case "env":
+			env := processor.NewEnv(os.Environ())
+			env.SetTargetSecretsFile(cfg.EnvFile)
+			env.Process(logger, client.Logical())
 
-		fmt.Printf("%+v\n\n", token)
-		fmt.Printf("%+v\n\n", token.Auth)
-		fmt.Printf("%+v\n\n", token.WrapInfo)
+		default:
+			logger.Fatalf("Undefined strategy %q. Possible values: [env]", cfg.ProcessorStrategy)
+		}
 	},
 }
 

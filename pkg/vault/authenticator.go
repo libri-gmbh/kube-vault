@@ -1,4 +1,4 @@
-package siedecar
+package vault
 
 import (
 	"encoding/json"
@@ -19,7 +19,14 @@ type kubeLogin struct {
 	Role string `json:"role"`
 }
 
-type VaultAuthenticator struct {
+type vaultClient interface {
+	NewRequest(method, requestPath string) *api.Request
+	RawRequest(request *api.Request) (*api.Response, error)
+	SetToken(v string)
+}
+
+// Authenticator handles vault kubernetes authentication
+type Authenticator struct {
 	logger *logrus.Entry
 }
 
@@ -28,14 +35,15 @@ var (
 	errTokenIsNil             = errors.New("given token is nil or empty")
 )
 
-func NewVaultAuthenticator(logger *logrus.Entry) *VaultAuthenticator {
-	return &VaultAuthenticator{
+// NewAuthenticator returns a new Authenticator instance
+func NewAuthenticator(logger *logrus.Entry) *Authenticator {
+	return &Authenticator{
 		logger: logger,
 	}
 }
 
 // Authenticate hands over the k8s SA token to vault, receiving the vault authentication token
-func (f *VaultAuthenticator) Authenticate(client *api.Client, kubeLoginPath, kubeLoginRole, kubeTokenFilePath, vaultTokenFilePath string) (*api.Secret, error) {
+func (f *Authenticator) Authenticate(client vaultClient, kubeLoginPath, kubeLoginRole, kubeTokenFilePath, vaultTokenFilePath string) (*api.Secret, error) {
 	// first try to read the vault token - if this is successful we are already logged in
 	token, err := f.readTokenFile(client, vaultTokenFilePath)
 	if err != nil && err != errVaultTokenFileNotFound {
@@ -80,7 +88,7 @@ func (f *VaultAuthenticator) Authenticate(client *api.Client, kubeLoginPath, kub
 }
 
 // readTokenFile reads a vault token from a given path
-func (f *VaultAuthenticator) readTokenFile(client *api.Client, vaultTokenFilePath string) (*api.Secret, error) {
+func (f *Authenticator) readTokenFile(client vaultClient, vaultTokenFilePath string) (*api.Secret, error) {
 	f.logger.Debugf("trying to read token from file %q", vaultTokenFilePath)
 	if _, err := os.Stat(vaultTokenFilePath); os.IsNotExist(err) {
 		return nil, errVaultTokenFileNotFound
@@ -103,7 +111,8 @@ func (f *VaultAuthenticator) readTokenFile(client *api.Client, vaultTokenFilePat
 	return &token, nil
 }
 
-func (f *VaultAuthenticator) writeTokenToFile(token *api.Secret, vaultTokenFilePath string) error {
+// writeTokenToFile writes an authentication token to given file
+func (f *Authenticator) writeTokenToFile(token *api.Secret, vaultTokenFilePath string) error {
 	if token == nil {
 		return errTokenIsNil
 	}
