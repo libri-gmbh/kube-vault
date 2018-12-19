@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-type kubeLogin struct {
+type kubeAuth struct {
 	JWT  string `json:"jwt"`
 	Role string `json:"role"`
 }
@@ -45,7 +45,7 @@ func NewAuthenticator(logger *logrus.Entry, client vaultClient) *Authenticator {
 }
 
 // Authenticate hands over the k8s SA token to vault, receiving the vault authentication token
-func (f *Authenticator) Authenticate(forceLogin bool, kubeLoginPath, kubeLoginRole, kubeTokenFilePath, vaultTokenFilePath string) (*api.Secret, error) {
+func (f *Authenticator) Authenticate(forceLogin bool, kubeAuthPath, kubeAuthRole, kubeTokenFilePath, vaultTokenFilePath string) (*api.Secret, error) {
 	if !forceLogin {
 		// first try to read the vault token - if this is successful we are already logged in
 		token, err := f.readTokenFile(vaultTokenFilePath)
@@ -56,12 +56,12 @@ func (f *Authenticator) Authenticate(forceLogin bool, kubeLoginPath, kubeLoginRo
 		}
 	}
 
-	token, err := f.fetchKubeAuthToken(kubeTokenFilePath, kubeLoginPath, kubeLoginRole)
+	token, err := f.fetchKubeAuthToken(kubeTokenFilePath, kubeAuthPath, kubeAuthRole)
 	if err != nil {
 		return nil, err
 	}
 
-	f.logger.Infof("successfully authenticated kube role %s at %s", kubeLoginRole, kubeLoginPath)
+	f.logger.Infof("successfully authenticated kube role %s at %s", kubeAuthRole, kubeAuthPath)
 
 	if err := f.writeTokenToFile(token, vaultTokenFilePath); err != nil {
 		return nil, fmt.Errorf("failed to save token to file: %v", err)
@@ -73,7 +73,7 @@ func (f *Authenticator) Authenticate(forceLogin bool, kubeLoginPath, kubeLoginRo
 	return token, nil
 }
 
-func (f *Authenticator) fetchKubeAuthToken(kubeTokenFilePath, kubeLoginPath, kubeLoginRole string) (*api.Secret, error) {
+func (f *Authenticator) fetchKubeAuthToken(kubeTokenFilePath, kubeAuthPath, kubeAuthRole string) (*api.Secret, error) {
 	// nolint: gosec
 	k8sTokenBytes, err := ioutil.ReadFile(kubeTokenFilePath)
 	if err != nil {
@@ -83,8 +83,8 @@ func (f *Authenticator) fetchKubeAuthToken(kubeTokenFilePath, kubeLoginPath, kub
 	k8sToken := strings.TrimSpace(string(k8sTokenBytes))
 	f.logger.Debugf("loaded JWT token %v from kube token path %q", k8sToken, kubeTokenFilePath)
 
-	req := f.client.NewRequest(http.MethodPost, fmt.Sprintf("/v1/auth/%s/login", kubeLoginPath))
-	err = req.SetJSONBody(&kubeLogin{JWT: k8sToken, Role: kubeLoginRole})
+	req := f.client.NewRequest(http.MethodPost, fmt.Sprintf("/v1/auth/%s/login", kubeAuthPath))
+	err = req.SetJSONBody(&kubeAuth{JWT: k8sToken, Role: kubeAuthRole})
 	if err != nil {
 		return nil, fmt.Errorf("failed to set json body on auth request: %v", err)
 	}
