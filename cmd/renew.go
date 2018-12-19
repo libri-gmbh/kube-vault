@@ -15,8 +15,8 @@ var renewCmd = &cobra.Command{
 	Short: "Renew the leases created by the init process",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := baseLogger.WithField("cmd", "renew")
-		auth := vault.NewAuthenticator(logger)
-		_, err := auth.Authenticate(client, false, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
+		auth := vault.NewAuthenticator(logger, client)
+		_, err := auth.Authenticate(false, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
 		if err != nil {
 			baseLogger.Fatalf("failed to authenticate with vault: %v", err)
 		}

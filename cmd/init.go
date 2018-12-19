@@ -16,8 +16,8 @@ var initCmd = &cobra.Command{
 	Short: "Run the sidecar as init container to fetch secrets and store credentials",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := baseLogger.WithField("cmd", "init")
-		auth := vault.NewAuthenticator(logger)
-		_, err := auth.Authenticate(client, true, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
+		auth := vault.NewAuthenticator(logger, client)
+		_, err := auth.Authenticate(true, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
 		if err != nil {
 			baseLogger.Fatalf("failed to authenticate with vault: %v", err)
 		}
