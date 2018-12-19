@@ -1,5 +1,5 @@
-hash: 2d4825e9b422e836df1905931afc82a6027c51f8b12e7689ce97ee4c5301c310
-updated: 2018-12-17T12:00:53.857359+01:00
+hash: 5a30e2fb561532dc86342cd701df452a51e55d8a11cb4c6fd02043154c279bc6
+updated: 2018-12-19T18:34:09.53204+01:00
 imports:
 - name: github.com/golang/snappy
   version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
@@ -70,7 +70,7 @@ imports:
   - http2/hpack
   - idna
 - name: golang.org/x/sys
-  version: 4d1cda033e0619309c606fc686de3adcf599539e
+  version: 074acd46bca67915925527c07849494d115e7c43
   subpackages:
   - unix
   - windows
@@ -85,6 +85,4 @@ imports:
   version: 85acf8d2951cb2a3bde7632f9ff273ef0379bcbd
   subpackages:
   - rate
-- name: gopkg.in/yaml.v2
-  version: 51d6538a90f86fe93ac480b35f37b2be17fef232
 testImports: []
