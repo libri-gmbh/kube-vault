@@ -117,7 +117,7 @@ You may configure the app using environment variables, as shown in the example. 
 * `KUBE_AUTH_PATH`: The path where the k8s auth method is mounted (used as `fmt.Sprintf("/v1/auth/%s/login", kubeAuthPath)`)
 * `KUBE_AUTH_ROLE`: Used to tell the kubernetes auth method which role to assume (has to be defined in vault)
 * `KubeTokenFile`: Where to load the k8s auth token from, useful for local development & testing (defaults to `/run/secrets/kubernetes.io/serviceaccount/token`)
-* `VAULT_TOKEN_FILE`: Where to store the vault auth token fetched at ``, used to handover the token from `init` to `renew` container (defaults to `/env/vault-token`)
+* `VAULT_TOKEN_FILE`: Where to store the vault auth token fetched at `$KUBE_AUTH_PATH`, used to handover the token from `init` to `renew` container (defaults to `/env/vault-token`)
 * `ENV_FILE`: Where to store the generated credentials in env format (defaults to `/env/secrets`)
 * `PROCESSOR_STRATEGY`: Which config processor to use (means where to store the generated creds). Currently the only supported option is `env`, but this may be extended in the future
 
