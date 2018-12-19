@@ -14,8 +14,8 @@ services:
     volumes:
       - "env:/env"
       - "./k8s.token:/run/secrets/kubernetes.io/serviceaccount/token"
-      - "./:/go/src/github.com/libri-gmbh/kube-vault-sidecar/"
-    working_dir: "/go/src/github.com/libri-gmbh/kube-vault-sidecar/"
+      - "./:/go/src/github.com/libri-gmbh/kube-vault/"
+    working_dir: "/go/src/github.com/libri-gmbh/kube-vault/"
   app:
     image: alpine
     tty: true

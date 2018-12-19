@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.10
-    working_directory: /go/src/github.com/libri-gmbh/kube-vault-sidecar
+    working_directory: /go/src/github.com/libri-gmbh/kube-vault
 
     steps:
       - checkout

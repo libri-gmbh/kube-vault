@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"reflect"
@@ -8,55 +9,57 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/hashicorp/vault/api"
 )
 
 const envPrefix = "SECRET_"
 
 // Env handles variables consumed to and written to env vars / a file containing env vars
 type Env struct {
+	logger     *logrus.Entry
 	values     []string
 	targetFile string
 }
 
-func NewEnv(env []string) *Env {
+func NewEnv(logger *logrus.Entry, env []string, targetFile string) *Env {
 	return &Env{
+		logger:     logger,
 		values:     env,
-		targetFile: "/env/secrets",
+		targetFile: targetFile,
 	}
-}
-
-// SetTargetSecretsFile sets the file path where the rendered env vars should be stored.
-func (p *Env) SetTargetSecretsFile(targetFile string) {
-	p.targetFile = targetFile
 }
 
 // Process reads a list of environment variables and fetches the referenced secrets from vault,
 // storing the results in a file using the bash export syntax.
-func (p *Env) Process(logger *logrus.Entry, logicalClient vaultLogicalClient) error {
+func (p *Env) Process(logicalClient vaultLogicalClient) error {
 	var values []string
-	var leases []string
+	var secrets []*api.Secret
 
 	for _, envVar := range p.values {
 		if !strings.HasPrefix(envVar, envPrefix) {
+			p.logger.Debugf("Skipping %q, not prefixed with SECRET_", strings.Split(envVar, "=")[0])
 			continue
 		}
 
-		envVarName, path := p.splitAndCleanEnv(envVar)
-		secret, err := logicalClient.Read(path)
+		envVarName, uri := p.splitAndCleanEnv(envVar)
+		p.logger.Debugf("Loading env var %q from %q", envVarName, uri)
+
+		secret, err := logicalClient.Read(uri)
 		if err != nil {
-			return fmt.Errorf("failed to read secret endpoint %q: %v", path, err)
+			return fmt.Errorf("failed to read secret endpoint %q: %v", uri, err)
 		}
 
-		values = append(values, p.formatExports(logger, envVarName, secret.Data)...)
-		leases = append(leases, secret.LeaseID)
+		values = append(values, p.formatExports(envVarName, secret.Data)...)
+		secrets = append(secrets, secret)
 	}
 
-	if err := p.writeFile(values, p.targetFile); err != nil {
+	valuesBytes := []byte(strings.Join(values, "\n"))
+	if err := p.writeFile(valuesBytes, p.targetFile); err != nil {
 		return fmt.Errorf("failed to write secrets file: %v", err)
 	}
 
-	if err := p.writeFile(leases, LeasesFileName(p.targetFile)); err != nil {
-		return fmt.Errorf("failed to write secrets file: %v", err)
+	if err := p.writeJsonFile(secrets, LeasesFileName(p.targetFile)); err != nil {
+		return fmt.Errorf("failed to write secrets leases file: %v", err)
 	}
 
 	return nil
@@ -66,22 +69,28 @@ func (p *Env) Process(logger *logrus.Entry, logicalClient vaultLogicalClient) er
 // prefixes and slashes respectively
 func (p *Env) splitAndCleanEnv(env string) (string, string) {
 	parts := strings.Split(env, "=")
-	return strings.Trim(parts[0], envPrefix), strings.Trim(parts[1], "/")
+	return strings.TrimLeft(parts[0], envPrefix), strings.Trim(parts[1], "/")
 }
 
 // formatExports renders the export statements for the given secret, doing recursive calls if values are nested.
 // This method is using reflect to analyze the type of the secrets data in order to handle the values correctly.
 // If you think there is a better / more efficient / cleaner way to do so please open a PR and contribute the solution.
-func (p *Env) formatExports(logger *logrus.Entry, envVarName string, secret interface{}) []string {
+func (p *Env) formatExports(envVarName string, secret interface{}) []string {
 	var values []string
 
 	secretType := reflect.ValueOf(secret)
+	if secret == nil || (secretType.Kind() == reflect.Ptr && secretType.IsNil()) {
+		p.logger.Debugf("Skipping %q as its value is nil", envVarName)
+		return []string{}
+	}
+
 	switch secretType.Kind() {
 	case reflect.Map:
 		for _, key := range secretType.MapKeys() {
 			nestedKey := p.formatKey(envVarName, key.String())
-			values = append(values, p.formatExports(logger, nestedKey, secretType.MapIndex(key).Interface())...)
+			values = append(values, p.formatExports(nestedKey, secretType.MapIndex(key).Interface())...)
 		}
+
 	case reflect.Slice:
 		return []string{p.formatExport(envVarName, strings.Join(secret.([]string), ","))}
 
@@ -89,7 +98,7 @@ func (p *Env) formatExports(logger *logrus.Entry, envVarName string, secret inte
 		return []string{p.formatExport(envVarName, secret.(string))}
 
 	default:
-		logger.Fatalf("Unknown type of secret value in env processor: %v", reflect.TypeOf(secret).Elem().String())
+		p.logger.Fatalf("Unknown type %q of secret value in env processor: %v", secretType.Kind().String(), secret)
 	}
 
 	sort.Strings(values)
@@ -107,9 +116,17 @@ func (p *Env) formatExport(key, value string) string {
 	return fmt.Sprintf("export %v=%v", strings.ToUpper(key), value)
 }
 
-func (p *Env) writeFile(values []string, filePath string) error {
-	content := strings.Join(values, "\n")
-	if err := ioutil.WriteFile(filePath, []byte(content), 0640); err != nil {
+func (p *Env) writeJsonFile(content interface{}, filePath string) error {
+	b, err := json.Marshal(content)
+	if err != nil {
+		return fmt.Errorf("failed to encode file content: %v", err)
+	}
+
+	return p.writeFile(b, filePath)
+}
+
+func (p *Env) writeFile(content []byte, filePath string) error {
+	if err := ioutil.WriteFile(filePath, content, 0640); err != nil {
 		return fmt.Errorf("failed to write the env secrets file to %q: %v", p.targetFile, err)
 	}
 

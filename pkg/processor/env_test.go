@@ -1,17 +1,21 @@
 package processor
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/vault/api"
-	internalTesting "github.com/libri-gmbh/kube-vault-sidecar/pkg/internal/testing"
+	internalTesting "github.com/libri-gmbh/kube-vault/pkg/internal/testing"
 )
 
 func TestEnv_FormatKey(t *testing.T) {
-	env := &Env{}
+	_, logger := internalTesting.NewLogger()
+	env := &Env{
+		logger: logger,
+	}
 
 	exp := "ASDF_QWERTZ"
 	res := env.formatKey("asdf", "qwertz")
@@ -21,7 +25,10 @@ func TestEnv_FormatKey(t *testing.T) {
 }
 
 func TestEnv_FormatExport(t *testing.T) {
-	env := &Env{}
+	_, logger := internalTesting.NewLogger()
+	env := &Env{
+		logger: logger,
+	}
 
 	exp := "export ASDF_QWERTZ=test1234"
 	res := env.formatExport("ASDF_QWERTZ", "test1234")
@@ -31,7 +38,10 @@ func TestEnv_FormatExport(t *testing.T) {
 }
 
 func TestEnv_SplitAndCleanEnv(t *testing.T) {
-	env := &Env{}
+	_, logger := internalTesting.NewLogger()
+	env := &Env{
+		logger: logger,
+	}
 
 	expKey := "ASDF_QWERTZ"
 	expVal := "test1234"
@@ -46,13 +56,14 @@ func TestEnv_SplitAndCleanEnv(t *testing.T) {
 
 func TestEnv_FormatExportsString(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
-
-	env := &Env{}
+	env := &Env{
+		logger: logger,
+	}
 	exp := []string{
 		"export ASDF_QWERTZ=test1234",
 	}
 
-	res := env.formatExports(logger, "ASDF_QWERTZ", "test1234")
+	res := env.formatExports("ASDF_QWERTZ", "test1234")
 	if !reflect.DeepEqual(exp, res) {
 		t.Errorf("Expected to get %s, got %s", exp, res)
 	}
@@ -60,13 +71,14 @@ func TestEnv_FormatExportsString(t *testing.T) {
 
 func TestEnv_FormatExportsStringSlice(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
-
-	env := &Env{}
+	env := &Env{
+		logger: logger,
+	}
 	exp := []string{
 		"export ASDF_QWERTZ=test1234,test5678,teeeest",
 	}
 
-	res := env.formatExports(logger, "ASDF_QWERTZ", []string{"test1234", "test5678", "teeeest"})
+	res := env.formatExports("ASDF_QWERTZ", []string{"test1234", "test5678", "teeeest"})
 	if !reflect.DeepEqual(exp, res) {
 		t.Errorf("Expected to get %s, got %s", exp, res)
 	}
@@ -74,14 +86,15 @@ func TestEnv_FormatExportsStringSlice(t *testing.T) {
 
 func TestEnv_FormatExportsMapInterface(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
-
-	env := &Env{}
+	env := &Env{
+		logger: logger,
+	}
 	exp := []string{
 		"export ASDF_QWERTZ_PASSWORD=test5678",
 		"export ASDF_QWERTZ_USERNAME=test1234",
 	}
 
-	res := env.formatExports(logger, "ASDF_QWERTZ", map[string]interface{}{"username": "test1234", "password": "test5678"})
+	res := env.formatExports("ASDF_QWERTZ", map[string]interface{}{"username": "test1234", "password": "test5678"})
 	if !reflect.DeepEqual(exp, res) {
 		t.Errorf("Expected to get %s, got %s", exp, res)
 	}
@@ -89,14 +102,15 @@ func TestEnv_FormatExportsMapInterface(t *testing.T) {
 
 func TestEnv_FormatExportsMapString(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
-
-	env := &Env{}
+	env := &Env{
+		logger: logger,
+	}
 	exp := []string{
 		"export ASDF_QWERTZ_PASSWORD=test5678",
 		"export ASDF_QWERTZ_USERNAME=test1234",
 	}
 
-	res := env.formatExports(logger, "ASDF_QWERTZ", map[string]string{"username": "test1234", "password": "test5678"})
+	res := env.formatExports("ASDF_QWERTZ", map[string]string{"username": "test1234", "password": "test5678"})
 	if !reflect.DeepEqual(exp, res) {
 		t.Errorf("Expected to get %s, got %s", exp, res)
 	}
@@ -104,15 +118,16 @@ func TestEnv_FormatExportsMapString(t *testing.T) {
 
 func TestEnv_FormatExportsMapInterfaceNested(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
-
-	env := &Env{}
+	env := &Env{
+		logger: logger,
+	}
 	exp := []string{
 		"export ASDF_QWERTZ_ENDPOINT_URL=http://asdf.net/",
 		"export ASDF_QWERTZ_PASSWORD=test5678",
 		"export ASDF_QWERTZ_USERNAME=test1234",
 	}
 
-	res := env.formatExports(logger, "ASDF_QWERTZ", map[string]interface{}{
+	res := env.formatExports("ASDF_QWERTZ", map[string]interface{}{
 		"username": "test1234",
 		"password": "test5678",
 		"endpoint": map[string]interface{}{
@@ -148,6 +163,8 @@ func TestEnv_Process(t *testing.T) {
 		values: []string{
 			"SECRET_ASDF_QWERTZ=secrets/asdf/qwertz",
 		},
+		targetFile: tmpfile,
+		logger:     logger,
 	}
 	exp := []string{
 		"export ASDF_QWERTZ_ENDPOINT_URL=http://asdf.net/",
@@ -155,8 +172,7 @@ func TestEnv_Process(t *testing.T) {
 		"export ASDF_QWERTZ_USERNAME=test1234",
 	}
 
-	env.SetTargetSecretsFile(tmpfile)
-	err = env.Process(logger, client)
+	err = env.Process(client)
 	if err != nil {
 		t.Fatalf("Got unexpected error from Process(): %v", err)
 	}
@@ -176,7 +192,12 @@ func TestEnv_Process(t *testing.T) {
 		t.Fatalf("failed to read written env file: %v", err)
 	}
 
-	leases := strings.Split(string(bLeases), "\n")
+	var leases []*api.Secret
+
+	if err := json.Unmarshal(bLeases, &leases); err != nil {
+		t.Fatalf("failed to unmarshal json lease file content: %v", err)
+	}
+
 	if len(leases) != 1 {
 		t.Errorf("Invalid amount of leases, expected %d, got %d", 1, len(leases))
 	}

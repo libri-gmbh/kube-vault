@@ -1,4 +1,4 @@
-package: github.com/libri-gmbh/kube-vault-sidecar
+package: github.com/libri-gmbh/kube-vault
 import:
 - package: github.com/hashicorp/vault
   version: ^1.0.0

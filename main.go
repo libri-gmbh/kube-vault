@@ -2,7 +2,7 @@
 
 package main
 
-import "github.com/libri-gmbh/kube-vault-sidecar/cmd"
+import "github.com/libri-gmbh/kube-vault/cmd"
 
 func main() {
 	cmd.Execute()

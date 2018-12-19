@@ -1,13 +1,12 @@
 // Copyright © 2018 Alexander Pinnecke <alexander.pinnecke@googlemail.com>
-//
 
 package cmd
 
 import (
 	"os"
 
-	"github.com/libri-gmbh/kube-vault-sidecar/pkg/processor"
-	"github.com/libri-gmbh/kube-vault-sidecar/pkg/vault"
+	"github.com/libri-gmbh/kube-vault/pkg/processor"
+	"github.com/libri-gmbh/kube-vault/pkg/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -18,16 +17,18 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := baseLogger.WithField("cmd", "init")
 		auth := vault.NewAuthenticator(logger)
-		_, err := auth.Authenticate(client, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
+		_, err := auth.Authenticate(client, true, cfg.KubeAuthPath, cfg.KubeAuthRole, cfg.KubeTokenFile, cfg.VaultTokenFile)
 		if err != nil {
 			baseLogger.Fatalf("failed to authenticate with vault: %v", err)
 		}
 
 		switch cfg.ProcessorStrategy {
 		case "env":
-			env := processor.NewEnv(os.Environ())
-			env.SetTargetSecretsFile(cfg.EnvFile)
-			env.Process(logger, client.Logical())
+			env := processor.NewEnv(logger, os.Environ(), cfg.EnvFile)
+			err = env.Process(client.Logical())
+			if err != nil {
+				logger.Fatal(err)
+			}
 
 		default:
 			logger.Fatalf("Undefined strategy %q. Possible values: [env]", cfg.ProcessorStrategy)

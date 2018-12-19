@@ -4,7 +4,7 @@ import "testing"
 
 func TestLeasesFileName(t *testing.T) {
 	secretsFile := "/var/env/test-secrets"
-	leasesFile := "/var/env/test-secrets.leases"
+	leasesFile := "/var/env/test-secrets.leases.json"
 	generatedLeasesFile := LeasesFileName(secretsFile)
 
 	if generatedLeasesFile != leasesFile {

@@ -20,7 +20,7 @@ var (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "kube-vault-sidecar",
+	Use:   "kube-vault",
 	Short: "A slim sidecar / init container to fetch and renew vault secret leases.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
