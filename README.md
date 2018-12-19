@@ -4,7 +4,7 @@ A slim sidecar / init container to fetch and renew vault secret leases written i
 
 ## Background & Inspiration
 
-This project is used to couple vault to k8s, using this one as an init container and as a sidecar, fetching vault secrets (init) and renewing the auth token as well as the leases (renew).
+Integrating vault and kubernetes can be tricky, fetching credentials at application start and managing the leases is not process with a default go-to tool yet. This project is used to couple vault to k8s, using this one as an init container and as a sidecar, fetching vault secrets (init) and renewing the auth token as well as the leases (renew).
 
 This project is highly inspired by the following projects:
 
