@@ -21,6 +21,7 @@ type Env struct {
 	targetFile string
 }
 
+// NewEnv returns a new Env processor instance
 func NewEnv(logger *logrus.Entry, env []string, targetFile string) *Env {
 	return &Env{
 		logger:     logger,
@@ -58,7 +59,7 @@ func (p *Env) Process(logicalClient vaultLogicalClient) error {
 		return fmt.Errorf("failed to write secrets file: %v", err)
 	}
 
-	if err := p.writeJsonFile(secrets, LeasesFileName(p.targetFile)); err != nil {
+	if err := p.writeJSONFile(secrets, LeasesFileName(p.targetFile)); err != nil {
 		return fmt.Errorf("failed to write secrets leases file: %v", err)
 	}
 
@@ -69,7 +70,7 @@ func (p *Env) Process(logicalClient vaultLogicalClient) error {
 // prefixes and slashes respectively
 func (p *Env) splitAndCleanEnv(env string) (string, string) {
 	parts := strings.Split(env, "=")
-	return strings.TrimLeft(parts[0], envPrefix), strings.Trim(parts[1], "/")
+	return strings.Replace(parts[0], envPrefix, "", 1), strings.Trim(parts[1], "/")
 }
 
 // formatExports renders the export statements for the given secret, doing recursive calls if values are nested.
@@ -116,7 +117,7 @@ func (p *Env) formatExport(key, value string) string {
 	return fmt.Sprintf("export %v=%v", strings.ToUpper(key), value)
 }
 
-func (p *Env) writeJsonFile(content interface{}, filePath string) error {
+func (p *Env) writeJSONFile(content interface{}, filePath string) error {
 	b, err := json.Marshal(content)
 	if err != nil {
 		return fmt.Errorf("failed to encode file content: %v", err)

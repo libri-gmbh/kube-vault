@@ -28,7 +28,8 @@ var RootCmd = &cobra.Command{
 		baseLogger = logrus.New()
 		baseLogger.SetFormatter(&logrus.JSONFormatter{})
 
-		if err := envconfig.Process("", cfg); err != nil {
+		err = envconfig.Process("", cfg)
+		if err != nil {
 			baseLogger.Fatalf("Failed to parse env config: %v", err)
 		}
 

@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+// NewLogger returns a new logrus.Entry instance and a buffer which is configured as a stream output
 func NewLogger() (*bytes.Buffer, *logrus.Entry) {
 	logger := logrus.New()
 

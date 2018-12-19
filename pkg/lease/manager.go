@@ -1,4 +1,4 @@
-package siedecar
+package lease
 
 import (
 	"context"
@@ -11,19 +11,22 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-type LeaseManager struct {
+// Manager handles leases and cares about automatic renewal of them
+type Manager struct {
 	logger *logrus.Entry
 	client *api.Client
 }
 
-func NewLeaseManager(logger *logrus.Entry, client *api.Client) *LeaseManager {
-	return &LeaseManager{
+// NewManager returns a new Manager instance
+func NewManager(logger *logrus.Entry, client *api.Client) *Manager {
+	return &Manager{
 		logger: logger,
 		client: client,
 	}
 }
 
-func (m *LeaseManager) StartRenew(ctx context.Context, leaseFile string) {
+// StartRenew kicks of the renew processes - one for the auth token and one per leased secret
+func (m *Manager) StartRenew(ctx context.Context, leaseFile string) {
 	leases, err := m.loadLeasesFromFile(leaseFile)
 	if err != nil {
 		m.logger.Fatal(err)
@@ -37,13 +40,13 @@ func (m *LeaseManager) StartRenew(ctx context.Context, leaseFile string) {
 	go m.renewAuthToken(ctx)
 	go m.renewLeases(ctx, leases)
 
-	//defer m.revokeAuthToken()
-	//defer m.revokeLeases(secrets)
+	defer m.revokeAuthToken()
+	defer m.revokeLeases(leases)
 
 	<-ctx.Done()
 }
 
-func (m *LeaseManager) backOff(ctx context.Context, ttl int, handle func()) {
+func (m *Manager) backOff(ctx context.Context, ttl int, handle func()) {
 	t := time.NewTimer(time.Second * time.Duration(ttl))
 
 	select {
@@ -54,7 +57,7 @@ func (m *LeaseManager) backOff(ctx context.Context, ttl int, handle func()) {
 	}
 }
 
-func (m *LeaseManager) renewAuthToken(ctx context.Context) {
+func (m *Manager) renewAuthToken(ctx context.Context) {
 	secret, err := m.client.Auth().Token().RenewSelf(1800)
 	if err != nil {
 		m.logger.Errorf("failed to renew auth token from accessor: %v", err)
@@ -68,7 +71,7 @@ func (m *LeaseManager) renewAuthToken(ctx context.Context) {
 	})
 }
 
-func (m *LeaseManager) revokeAuthToken() {
+func (m *Manager) revokeAuthToken() {
 	err := m.client.Auth().Token().RevokeSelf("")
 	if err != nil {
 		m.logger.Errorf("failed to revoke self token: %v", err)
@@ -78,8 +81,10 @@ func (m *LeaseManager) revokeAuthToken() {
 	m.logger.Info("Auth token revoked")
 }
 
-func (m *LeaseManager) loadLeasesFromFile(leaseFile string) ([]*api.Secret, error) {
+func (m *Manager) loadLeasesFromFile(leaseFile string) ([]*api.Secret, error) {
 	m.logger.Debugf("Loading leases from file %s", leaseFile)
+
+	// nolint: gosec
 	content, err := ioutil.ReadFile(leaseFile)
 	if err != nil {
 		return []*api.Secret{}, fmt.Errorf("failed to read written env file: %v", err)
@@ -95,28 +100,13 @@ func (m *LeaseManager) loadLeasesFromFile(leaseFile string) ([]*api.Secret, erro
 	return leases, nil
 }
 
-func (m *LeaseManager) fetchLeases(leases []string) ([]*api.Secret, error) {
-	var secrets []*api.Secret
-	for _, lease := range leases {
-		m.logger.Debugf("Fetching details for lease %q", lease)
-		secret, err := m.client.Logical().Write("sys/leases/lookup", map[string]interface{}{"lease_id": lease})
-		if err != nil {
-			return []*api.Secret{}, fmt.Errorf("failed to fetch lease %q: %v", lease, err)
-		}
-
-		secrets = append(secrets, secret)
-	}
-
-	return secrets, nil
-}
-
-func (m *LeaseManager) renewLeases(ctx context.Context, secrets []*api.Secret) {
+func (m *Manager) renewLeases(ctx context.Context, secrets []*api.Secret) {
 	for _, secret := range secrets {
 		go m.renewLease(ctx, secret)
 	}
 }
 
-func (m *LeaseManager) renewLease(ctx context.Context, currentSecret *api.Secret) {
+func (m *Manager) renewLease(ctx context.Context, currentSecret *api.Secret) {
 	secret, err := m.client.Sys().Renew(currentSecret.LeaseID, currentSecret.LeaseDuration)
 	if err != nil {
 		m.logger.Errorf("failed to renew lease %q: %v", currentSecret.LeaseID, err)
@@ -130,13 +120,13 @@ func (m *LeaseManager) renewLease(ctx context.Context, currentSecret *api.Secret
 	})
 }
 
-func (m *LeaseManager) revokeLeases(secrets []*api.Secret) {
+func (m *Manager) revokeLeases(secrets []*api.Secret) {
 	for _, secret := range secrets {
 		go m.revokeLease(secret)
 	}
 }
 
-func (m *LeaseManager) revokeLease(secret *api.Secret) {
+func (m *Manager) revokeLease(secret *api.Secret) {
 	err := m.client.Sys().Revoke(secret.LeaseID)
 	if err != nil {
 		m.logger.Errorf("failed to renew lease %q: %v", secret.LeaseID, err)

@@ -54,6 +54,7 @@ func (f *Authenticator) Authenticate(client vaultClient, forceLogin bool, kubeLo
 		}
 	}
 
+	// nolint: gosec
 	k8sTokenBytes, err := ioutil.ReadFile(kubeTokenFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read token: %s", err)
@@ -63,7 +64,10 @@ func (f *Authenticator) Authenticate(client vaultClient, forceLogin bool, kubeLo
 	f.logger.Debugf("loaded JWT token %v from kube token path %q", k8sToken, kubeTokenFilePath)
 
 	req := client.NewRequest(http.MethodPost, fmt.Sprintf("/v1/auth/%s/login", kubeLoginPath))
-	req.SetJSONBody(&kubeLogin{JWT: k8sToken, Role: kubeLoginRole})
+	if err := req.SetJSONBody(&kubeLogin{JWT: k8sToken, Role: kubeLoginRole}); err != nil {
+		return nil, fmt.Errorf("failed to set json body on auth request: %v", err)
+	}
+
 	resp, err := client.RawRequest(req)
 	if err != nil {
 		return nil, err
@@ -98,6 +102,7 @@ func (f *Authenticator) readTokenFile(client vaultClient, vaultTokenFilePath str
 		return nil, errVaultTokenFileNotFound
 	}
 
+	// nolint: gosec
 	bytes, err := ioutil.ReadFile(vaultTokenFilePath)
 	if err != nil {
 		f.logger.Fatalf("failed to read token: %v", err)
@@ -135,8 +140,4 @@ func (f *Authenticator) writeTokenToFile(token *api.Secret, vaultTokenFilePath s
 	}
 
 	return nil
-}
-
-func (f *Authenticator) GetAuthToken() *api.Secret {
-	return f.token
 }
