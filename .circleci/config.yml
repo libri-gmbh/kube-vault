@@ -29,7 +29,7 @@ jobs:
           name: push docker images
           command: |
             [ "${CIRCLE_BRANCH}" != "master" ] && [ -z "${CIRCLE_TAG}" ] && exit 0
-            export DOCKER_REPO=$(echo "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" | awk '{print tolower($0)}')
+            export DOCKER_REPO=$(echo "${DOCKER_REPO_OWNER}/${CIRCLE_PROJECT_REPONAME}" | awk '{print tolower($0)}')
             docker login -u ${DOCKER_USER} -p "${DOCKER_PASS}" https://index.docker.io/v1/
             docker build -t ${DOCKER_REPO} .
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
