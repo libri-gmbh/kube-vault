@@ -127,7 +127,7 @@ func (p *Env) writeJSONFile(content interface{}, filePath string) error {
 }
 
 func (p *Env) writeFile(content []byte, filePath string) error {
-	if err := ioutil.WriteFile(filePath, content, 0640); err != nil {
+	if err := ioutil.WriteFile(filePath, content, 0700); err != nil {
 		return fmt.Errorf("failed to write the env secrets file to %q: %v", p.targetFile, err)
 	}
 
