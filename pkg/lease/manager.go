@@ -33,8 +33,7 @@ func (m *Manager) StartRenew(ctx context.Context, leaseFile string) {
 	}
 
 	if len(leases) == 0 {
-		m.logger.Infof("No leases found in file %q", leaseFile)
-		return
+		m.logger.Infof("No leases will be renewed as none were found in file %q", leaseFile)
 	}
 
 	go m.renewAuthToken(ctx)
