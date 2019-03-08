@@ -24,7 +24,7 @@ var initCmd = &cobra.Command{
 
 		switch cfg.ProcessorStrategy {
 		case "env":
-			env := processor.NewEnv(logger, os.Environ(), cfg.EnvFile)
+			env := processor.NewEnv(logger, os.Environ(), cfg.EnvFile, cfg.LeasesFile)
 			err = env.Process(client.Logical())
 			if err != nil {
 				logger.Fatal(err)

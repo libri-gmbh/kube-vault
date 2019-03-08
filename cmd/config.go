@@ -15,6 +15,7 @@ type config struct {
 	KubeTokenFile     string `default:"/run/secrets/kubernetes.io/serviceaccount/token" split_words:"true"`
 	VaultTokenFile    string `default:"/env/vault-token" split_words:"true"`
 	EnvFile           string `default:"/env/secrets" split_words:"true"`
+	LeasesFile        string `default:"/env/secrets.leases.json" split_words:"true"`
 	ProcessorStrategy string `default:"env" split_words:"true"`
 	Verbose           bool   `default:"false" split_words:"true"`
 }

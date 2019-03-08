@@ -18,15 +18,17 @@ const envPrefix = "SECRET_"
 type Env struct {
 	logger     *logrus.Entry
 	values     []string
-	targetFile string
+	envFile    string
+	leasesFile string
 }
 
 // NewEnv returns a new Env processor instance
-func NewEnv(logger *logrus.Entry, env []string, targetFile string) *Env {
+func NewEnv(logger *logrus.Entry, env []string, envFile, leasesFile string) *Env {
 	return &Env{
 		logger:     logger,
 		values:     env,
-		targetFile: targetFile,
+		envFile:    envFile,
+		leasesFile: leasesFile,
 	}
 }
 
@@ -55,11 +57,11 @@ func (p *Env) Process(logicalClient vaultLogicalClient) error {
 	}
 
 	valuesBytes := []byte(strings.Join(values, "\n"))
-	if err := p.writeFile(valuesBytes, p.targetFile); err != nil {
+	if err := p.writeFile(valuesBytes, p.envFile); err != nil {
 		return fmt.Errorf("failed to write secrets file: %v", err)
 	}
 
-	if err := p.writeJSONFile(secrets, LeasesFileName(p.targetFile)); err != nil {
+	if err := p.writeJSONFile(secrets, p.leasesFile); err != nil {
 		return fmt.Errorf("failed to write secrets leases file: %v", err)
 	}
 
@@ -128,7 +130,7 @@ func (p *Env) writeJSONFile(content interface{}, filePath string) error {
 
 func (p *Env) writeFile(content []byte, filePath string) error {
 	if err := ioutil.WriteFile(filePath, content, 0700); err != nil {
-		return fmt.Errorf("failed to write the env secrets file to %q: %v", p.targetFile, err)
+		return fmt.Errorf("failed to write the env secrets file to %q: %v", p.envFile, err)
 	}
 
 	return nil

@@ -153,17 +153,24 @@ func TestEnv_Process(t *testing.T) {
 	_, logger := internalTesting.NewLogger()
 	client := internalTesting.NewVaultClientLogical(secret, nil)
 
-	tmpfile, cleanup, err := internalTesting.CreateTempFile(logger)
+	envFile, envFileCleanup, err := internalTesting.CreateTempFile(logger)
 	if err != nil {
-		t.Fatalf("failed to create tmpfile: %v", err)
+		t.Fatalf("failed to create envFile: %v", err)
 	}
-	defer cleanup()
+	defer envFileCleanup()
+
+	leasesFile, leasesFileCleanup, err := internalTesting.CreateTempFile(logger)
+	if err != nil {
+		t.Fatalf("failed to create leasesFile: %v", err)
+	}
+	defer leasesFileCleanup()
 
 	env := &Env{
 		values: []string{
 			"SECRET_ASDF_QWERTZ=secrets/asdf/qwertz",
 		},
-		targetFile: tmpfile,
+		envFile:    envFile,
+		leasesFile: leasesFile,
 		logger:     logger,
 	}
 	exp := []string{
@@ -177,7 +184,7 @@ func TestEnv_Process(t *testing.T) {
 		t.Fatalf("Got unexpected error from Process(): %v", err)
 	}
 
-	bValues, err := ioutil.ReadFile(tmpfile)
+	bValues, err := ioutil.ReadFile(envFile)
 	if err != nil {
 		t.Fatalf("failed to read written env file: %v", err)
 	}
@@ -187,7 +194,7 @@ func TestEnv_Process(t *testing.T) {
 		t.Errorf("Expected to get %s, got %s", exp, content)
 	}
 
-	bLeases, err := ioutil.ReadFile(LeasesFileName(tmpfile))
+	bLeases, err := ioutil.ReadFile(env.leasesFile)
 	if err != nil {
 		t.Fatalf("failed to read written env file: %v", err)
 	}

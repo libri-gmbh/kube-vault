@@ -27,9 +27,9 @@ var RootCmd = &cobra.Command{
 
 		baseLogger = logrus.New()
 		baseLogger.SetFormatter(&logrus.JSONFormatter{
-			  	FieldMap: logrus.FieldMap{
-					 logrus.FieldKeyMsg:   "message",
-			   },
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyMsg: "message",
+			},
 		})
 
 		err = envconfig.Process("", cfg)

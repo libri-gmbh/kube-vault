@@ -4,7 +4,6 @@ package cmd
 
 import (
 	"github.com/libri-gmbh/kube-vault/pkg/lease"
-	"github.com/libri-gmbh/kube-vault/pkg/processor"
 	"github.com/libri-gmbh/kube-vault/pkg/vault"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +22,7 @@ var renewCmd = &cobra.Command{
 
 		ctx := newExitHandlerContext(logger)
 		leaseManager := lease.NewManager(logger, client)
-		leaseManager.StartRenew(ctx, processor.LeasesFileName(cfg.EnvFile))
+		leaseManager.StartRenew(ctx, cfg.LeasesFile)
 	},
 }
 
