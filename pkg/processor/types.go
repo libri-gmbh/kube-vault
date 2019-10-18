@@ -1,8 +1,8 @@
 package processor
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
+	"github.com/sirupsen/logrus"
 )
 
 // Processor processes env var requirements of an application and renders the result
