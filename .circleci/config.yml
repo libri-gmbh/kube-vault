@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:latest
     working_directory: /go/src/github.com/libri-gmbh/kube-vault
 
     steps:
@@ -12,9 +12,8 @@ jobs:
 
       - run:
           name: install dependencies
-          command: |
-            curl https://glide.sh/get | sh
-            glide install --strip-vendor
+          command: go mod download
+
       - run:
           name: run tests
           command: go test -v ./...
