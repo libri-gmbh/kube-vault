@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -7,9 +7,6 @@ jobs:
 
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-
       - run:
           name: install dependencies
           command: go mod download
@@ -19,7 +16,7 @@ jobs:
           command: go test -v ./...
 
       - run:
-          name: gometalinter
+          name: Golang CI Lint
           command: |
             wget -O- -nv https://github.com/golangci/golangci-lint/releases/download/v1.21.0/golangci-lint-1.21.0-linux-amd64.tar.gz | tar -xvzO golangci-lint-1.21.0-linux-amd64/golangci-lint > golangci-lint && chmod +x golangci-lint
             ./golangci-lint
