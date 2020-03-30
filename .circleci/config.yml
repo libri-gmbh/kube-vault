@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:latest
     working_directory: /go/src/github.com/libri-gmbh/kube-vault
@@ -15,12 +15,24 @@ jobs:
           name: run tests
           command: go test -v ./...
 
+  lint:
+    docker:
+      - image: golangci/golangci-lint:v1.24.0
+    working_directory: /go/src/github.com/libri-gmbh/kube-vault
+
+    steps:
+      - checkout
       - run:
           name: Golang CI Lint
-          command: |
-            wget -O- -nv https://github.com/golangci/golangci-lint/releases/download/v1.21.0/golangci-lint-1.21.0-linux-amd64.tar.gz | tar -xvzO golangci-lint-1.21.0-linux-amd64/golangci-lint > golangci-lint && chmod +x golangci-lint
-            ./golangci-lint
+          command: golangci-lint run -v
 
+  build:
+    docker:
+      - image: circleci/golang:latest
+    working_directory: /go/src/github.com/libri-gmbh/kube-vault
+
+    steps:
+      - checkout
       - deploy:
           name: push docker images
           command: |
@@ -35,11 +47,17 @@ jobs:
               docker tag ${DOCKER_REPO} ${DOCKER_REPO}:${CIRCLE_TAG}
               docker push ${DOCKER_REPO}:${CIRCLE_TAG}
             fi
+
 workflows:
   version: 2
   build:
     jobs:
+      - lint
+      - test
       - build:
+          requires:
+            - lint
+            - test
           context: docker
           filters:
             tags:
