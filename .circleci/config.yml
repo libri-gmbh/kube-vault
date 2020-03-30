@@ -33,6 +33,7 @@ jobs:
 
     steps:
       - checkout
+      - setup_remote_docker
       - deploy:
           name: push docker images
           command: |
