@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
+	"github.com/sirupsen/logrus"
 )
 
 type kubeAuth struct {

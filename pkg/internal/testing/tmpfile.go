@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // CreateTempFile creates a temporary file and returns the path and a callback to delete the file (should be called

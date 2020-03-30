@@ -3,7 +3,7 @@ package testing
 import (
 	"bytes"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // NewLogger returns a new logrus.Entry instance and a buffer which is configured as a stream output

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 

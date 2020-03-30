@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/hashicorp/vault/api"
+	"github.com/sirupsen/logrus"
 )
 
 // Manager handles leases and cares about automatic renewal of them

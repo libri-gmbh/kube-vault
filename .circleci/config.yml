@@ -1,30 +1,39 @@
-version: 2
+version: 2.1
 jobs:
-  build:
+  test:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:latest
     working_directory: /go/src/github.com/libri-gmbh/kube-vault
 
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-
       - run:
           name: install dependencies
-          command: |
-            curl https://glide.sh/get | sh
-            glide install --strip-vendor
+          command: go mod download
+
       - run:
           name: run tests
           command: go test -v ./...
 
+  lint:
+    docker:
+      - image: golangci/golangci-lint:v1.24.0
+    working_directory: /go/src/github.com/libri-gmbh/kube-vault
+
+    steps:
+      - checkout
       - run:
-          name: gometalinter
-          command: |
-            go get github.com/alecthomas/gometalinter
-            gometalinter -i
-            gometalinter --deadline=5m --vendor --skip=proto --sort=severity ./...
+          name: Golang CI Lint
+          command: golangci-lint run -v
+
+  build:
+    docker:
+      - image: circleci/golang:latest
+    working_directory: /go/src/github.com/libri-gmbh/kube-vault
+
+    steps:
+      - checkout
+      - setup_remote_docker
       - deploy:
           name: push docker images
           command: |
@@ -39,11 +48,17 @@ jobs:
               docker tag ${DOCKER_REPO} ${DOCKER_REPO}:${CIRCLE_TAG}
               docker push ${DOCKER_REPO}:${CIRCLE_TAG}
             fi
+
 workflows:
   version: 2
   build:
     jobs:
+      - lint
+      - test
       - build:
+          requires:
+            - lint
+            - test
           context: docker
           filters:
             tags:
